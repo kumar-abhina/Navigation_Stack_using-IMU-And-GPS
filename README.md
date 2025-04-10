@@ -1,118 +1,199 @@
 # 1. Magnetometer Hard and Soft Iron Calibration
-A magnetometer is a sensor used to measure the strength and direction of the local magnetic field surrounding a system. This magnetic field measurement can then be compared to models of Earth’s magnetic field to determine the heading of a system with respect to magnetic North. However, in most real-world applications, the magnetic field measured will be a combinationof both Earth’s magnetic field as well as magnetic fields created by nearby objects, commonly referred to as magnetic disturbances. In order to obtain an accurate heading estimate, the impact of nearby magnetic disturbances must be mitigated. Internal magnetic disturbances that are non-time varying can be accounted for using a hard and soft iron (HSI) calibration.
 
-For the driving data rosbag file you can visit the following link:
-- https://northeastern-my.sharepoint.com/:f:/g/personal/singh_risha_northeastern_edu/EiQZj8icjChFuHfHlOTiVawBeNLQ7QiOJDE8PzJJsHmVUQ?email=tiwari.ks%40northeastern.edu&e=qD9CTR
+A magnetometer is a sensor used to measure the strength and direction of the local magnetic field surrounding a system. This measurement is compared to Earth’s magnetic field model to determine the heading with respect to magnetic North. In real-world applications, the measured field is a combination of Earth’s field and nearby magnetic disturbances. To obtain an accurate heading, these disturbances must be mitigated using Hard and Soft Iron (HSI) calibration.
 
-# 1.1 Hard and Soft Iron Distortions
-Magnetic measurements are subjected to distortion. These distortions are considered to fall in one of two categories:
-1. Hard iron distortions: They are created by objects that produce a magnetic field. A speaker or piece of magnetized iron for example will cause a hard iron distortion. If the piece of magnetic material is physically attached to the same reference frame as the sensor, then this type of hard iron distortion will cause a permanent bias in the sensor output.
+For the driving data rosbag file, please visit the following link:  
+- [Driving Data Rosbag File](https://northeastern-my.sharepoint.com/:f:/g/personal/singh_risha_northeastern_edu/EiQZj8icjChFuHfHlOTiVawBeNLQ7QiOJDE8PzJJsHmVUQ?email=tiwari.ks%40northeastern.edu&e=qD9CTR)
 
-2. Soft iron distortions: They are considered deflections or alterations in the existing magnetic field. These distortions will stretch or distort the magnetic field depending upon which direction the field acts relative to the sensor. This type of distortion is commonly caused by metals such as nickel and iron. In most cases hard iron distortions will have a much larger contribution to the total uncorrected error than soft iron.
+---
 
-# 1.2 Visualizing Hard and Soft Iron Distortions
-1. Case 1- No Distortions: In the event that there are no hard or soft iron distortions present, the measurements should form a circle centered at X=0, Y=0. The radius of the circle equals the magnitude of the magnetic field.
-2. Case 2 - Hard Iron Distortions: Hard iron distortions will cause a permanent bias to be present in the magnetic measurements, which leads to a shift in the center of the circle. Suppose X=200 and Y=100, from this it can be concluded that there is 200 mGauss hard iron bias in the X-axis and 100 mGauss hard iron bias in the Y-axis.
-3. Case 3 - Hard and Soft Iron Distortions: Hard iron distortions will only shift the center of the circle away from the origin, they will not distort the shape of the circle in any way. Soft iron distortions, on the other hand, distort and warp the existing magnetic fields. When plotting the magnetic output, soft iron distortions are easy to recognize as they will distort the circular output into an elliptical shape. Every ellipse has a major and minor axis if the major and minor axis aligned to some degrees from the body frame then it is caused by the soft iron distortions.
+## 1.1 Hard and Soft Iron Distortions
 
-# 1.3 Hard-Iron Calibration
-Compensating for hard-iron distortion is accomplished by determining the x and y offsets and then applying these constants directly to the data.
-<img src="analysis/Graphs/HIC.png" width=1500px>
-```
-					where,  α is X axis offset
-						β is Y axis offset
-α = (Xmax + Xmin)/2				Xmax is Maximum X value
-β = (Ymax + Ymin)/2				Xmin is Minimum X value
-						Y max is Maximum Y value
-						Y min is Minimum Y value
-These offsets are then subtracted from the raw x and y magnetometer data, thus largely eliminating the hard-iron distortion. 
-```
-# 1.4 Soft-Iron Calibration
-After hard-iron calibration, the origin of the ellipse is at (0, 0), and is exhibiting a rotation of θ degrees from the X axis.
-<img src="analysis/Graphs/SIC.png" width=1500px>
-```
-r = sqrt{X1^2 + Y1^2}
-θ = arcsin(Y 1/r)
-                    
-R = [ cosθ sinθ]      
-    [−sinθ cosθ]
-    
-v1 = Rv
-σ = q/r           
-```
-One method of identifying ”r” is to calculate the magnitude of each data point and then identify the maximum of these computed values. The coordinates of this value will correspond with the major axis. Similarly, the minimum value will correspond to the minor axis, ”q”. Once θ has been identified, the rotation matrix ”R” given is applied to the vector of magnetometer x and y values. After the rotation, the major axis of the ellipse will be aligned with the reference frame X axis and the minor axis will be aligned with the Y axis. Following the rotation, we can now properly scale the major axis such that the ellipse is converted to an approximate circle. The scale factor σ, is determined, and is the ratio of the length of the major axis to that of the minor axis. Each magnetometer x value is then divided by this scale factor to produce the desired circle.
-<img src="analysis/Graphs/Magnetometer calibration.png" width=1500px>
+Magnetic measurements can suffer from two types of distortions:
+
+1. **Hard Iron Distortions:**  
+   These are caused by nearby objects that generate a magnetic field (e.g., a speaker or magnetized iron). If attached to the same reference frame as the sensor, they introduce a permanent bias.
+
+2. **Soft Iron Distortions:**  
+   These are deflections or alterations of the existing magnetic field. Soft iron distortions stretch or warp the field depending on the sensor’s orientation relative to the field, commonly caused by metals like nickel and iron. Typically, hard iron distortions contribute a larger error than soft iron.
+
+---
+
+## 1.2 Visualizing Hard and Soft Iron Distortions
+
+1. **Case 1 – No Distortions:**  
+   The measurements form a circle centered at \( (0, 0) \) with a radius equal to the magnetic field magnitude.
+
+2. **Case 2 – Hard Iron Distortions:**  
+   A permanent bias shifts the center of the circle. For example, if \( X = 200 \) and \( Y = 100 \), it indicates a 200 mGauss bias along the X-axis and 100 mGauss along the Y-axis.
+
+3. **Case 3 – Hard and Soft Iron Distortions:**  
+   Hard iron only shifts the center. In contrast, soft iron distorts the circle into an ellipse. If the ellipse’s major and minor axes are rotated relative to the sensor’s frame, the distortion is caused by soft iron effects.
+
+---
+
+## 1.3 Hard-Iron Calibration
+
+Compensation for hard-iron distortion involves calculating the offsets for the X and Y axes and subtracting these from the measured data. The offsets are calculated as:
+
+$$
+\alpha = \frac{X_{\text{max}} + X_{\text{min}}}{2}, \quad \beta = \frac{Y_{\text{max}} + Y_{\text{min}}}{2},
+$$
+
+where:
+
+- \(X_{\text{max}}\) is the maximum X value,  
+- \(X_{\text{min}}\) is the minimum X value,  
+- \(Y_{\text{max}}\) is the maximum Y value, and  
+- \(Y_{\text{min}}\) is the minimum Y value.
+
+Subtracting these offsets from the raw magnetometer data largely eliminates the hard-iron distortion.
+
+<img src="analysis/Graphs/HIC.png" width="1500px" alt="Hard Iron Calibration">
+
+---
+
+## 1.4 Soft-Iron Calibration
+
+After the hard-iron calibration, the ellipse’s center is at \( (0,0) \), but it may be rotated by an angle \(\theta\) relative to the X-axis. The soft-iron calibration involves:
+
+1. **Compute the magnitude of the calibrated data:**
+
+   $$
+   r = \sqrt{X_1^2 + Y_1^2}.
+   $$
+
+2. **Determine the rotation angle \(\theta\):**
+
+   $$
+   \theta = \arcsin\left(\frac{Y_1}{r}\right).
+   $$
+
+3. **Construct the rotation matrix \( R \):**
+
+   $$
+   R = \begin{bmatrix}
+   \cos\theta & \sin\theta \\
+   -\sin\theta & \cos\theta
+   \end{bmatrix}.
+   $$
+
+4. **Rotate the magnetometer vector:**
+
+   $$
+   v_1 = R v.
+   $$
+
+5. **Determine the scale factor \(\sigma\):**
+
+   $$
+   \sigma = \frac{q}{r},
+   $$
+
+   where \(q\) corresponds to the length of the minor axis of the ellipse.
+
+After the rotation, each magnetometer X value is divided by \(\sigma\) to convert the ellipse into an approximate circle.
+
+<img src="analysis/Graphs/SIC.png" width="1500px" alt="Soft Iron Calibration">
+<img src="analysis/Graphs/Magnetometer calibration.png" width="1500px" alt="Magnetometer Calibration">
+
+---
 
 # 2. Estimation of Yaw Angle
-# 2.1 Magnetometer Yaw Estimate before and after calibration
-Yaw angle is found after the calibration of hard and soft iron of the magnetometer. It can also be derived from integrating gyroscope data.
-Both calculated yaw closely matches the form of the yaw angle internally calculated in the IMU. The yaw calculated from the gyroscope data is relatively smoother and less sensitive (fewer peaks) compared to the IMU yaw, while the yaw derived from the magnetometer data is relatively less smooth.
-<img src="analysis/Graphs/Yaw_Angle.png" width=1500px>
-<img src="analysis/Graphs/LPF_HPF_Complementary.png" width=1500px>
-# 2.3 Gyroscope Yaw Estimate and Complementary Filter Yaw Estimate
-1. A LPF is used on the magnetometer data to keep its steady low drift and clip-off any high frequency noise.
-2. A HPF is used on the gyro data as the gyroscope data tends to drift over time. So to keep high frequency measurements and clip-off the bias from low frequency drift being integrated a HPF is used.
-<img src="analysis/Graphs/IMUYawvsCal.png" width=1500px>
+
+## 2.1 Magnetometer Yaw Estimate Before and After Calibration
+
+After calibrating the hard and soft iron distortions, the yaw angle is computed from the magnetometer data. This yaw can also be derived from integrating gyroscope data. Typically:
+
+- The yaw computed from the gyroscope is smoother with fewer peaks.
+- The magnetometer-derived yaw is less smooth due to higher sensitivity to disturbances.
+
+<img src="analysis/Graphs/Yaw_Angle.png" width="1500px" alt="Yaw Angle">
+<img src="analysis/Graphs/LPF_HPF_Complementary.png" width="1500px" alt="Filter Comparison">
+
+## 2.3 Gyroscope Yaw Estimate and Complementary Filter Yaw Estimate
+
+- A **Low-Pass Filter (LPF)** is applied to magnetometer data to reduce high-frequency noise and drift.
+- A **High-Pass Filter (HPF)** is applied to gyroscope data to minimize low-frequency drift.
+
+<img src="analysis/Graphs/IMUYawvsCal.png" width="1500px" alt="IMU Yaw vs Calibrated Yaw">
+
+---
 
 # 3. Estimation of Forward Velocity
-Velocity can be found by taking the integral of acceleration and by finding the instantaneous velocity of each point of GPS data.
-To track the velocity or speed of our vehicle we perform integration on accelerometer data. Here we are using only the X component of the Linear acceleration of the accelerometer, which is mounted as the direction pointing straight out the front of the vehicle.
-In this experiment we don’t consider Y component linear acceleration because the car is not skidding in a sideways direction.
-Forward velocity can also be calculated by taking the hypotenuse of the X and Y components (easting and northing) of our GPS position data and taking the gradient with respect to time.
-<img src="analysis/Graphs/IMUrawvsGPSraw.png" width=1500px>
-<img src="analysis/Graphs/IMUvsGPSAdjusted.png" width=1500px>
+
+Forward velocity can be estimated in two ways:
+
+1. **Integration of Accelerometer Data:**  
+   Use the X component of the linear acceleration (aligned with the vehicle’s front). The Y component is ignored since the vehicle does not skid sideways.
+
+2. **GPS-Based Calculation:**  
+   Compute the hypotenuse of the easting (X) and northing (Y) components of the GPS data and differentiate with respect to time.
+
+<img src="analysis/Graphs/IMUrawvsGPSraw.png" width="1500px" alt="Raw IMU vs. Raw GPS">
+<img src="analysis/Graphs/IMUvsGPSAdjusted.png" width="1500px" alt="Adjusted IMU vs. GPS">
+
+---
 
 # 4. Dead Reckoning with IMU
-Dead Reckoning is process of calculating current position of a moving object from knowledge of its previously determined position. Dead reckoning is the only navigation choice, especially in the absence of landmarks of known position. Dead reckoning using IMU can be done by multiplying our estimated forward velocity by yaw angle.
-<img src="analysis/Graphs/Trajectory.png" width=1500px>
 
-# 4.1 Obtain Velocity by Integrating Acceleration
-Simplify the equations to get acceleration measured by the inertial sensor (i.e. its acceleration as sensed in the vehicle frame) is:
-```
-ẍ obs = Ẍ − ωẎ − ω^2 x_c
-ẍ obs = Ẍ 
-```
+Dead reckoning calculates the current position of a moving object from a previously determined position. With an IMU, this is achieved by multiplying the estimated forward velocity with the yaw angle.
 
-Here, all the quantities in these equations are evaluated in the vehicle frame. We can integrate Ẍ to find the velocity. Similarly,
-```
-ÿ obs = Ÿ + ωẊ + ω̇x_c
-```
-can be simplified to ÿ obs = ω Ẋ is the velocity calculated. And the ω is the z-axis angular velocity from the gyroscope. We assume that the Ẏ = 0 (that is, the vehicle is not skidding sideways) and ignore the offset by setting x c = 0 (meaning that the IMU is on the center of mass of the vehicle, i.e. the point
-about which the car rotates).
-<img src="analysis/Graphs/YobsvswX.png" width=1500px>
+<img src="analysis/Graphs/Trajectory.png" width="1500px" alt="Trajectory">
 
-# 4.2 Estimation of x_c
-The position and velocity of the center-of-mass (CM) of the vehicle is shown by R and V, respectively. The inertial sensor is displaced from the CM by r = (x_c , 0, 0) note that this vector is constant in the vehicle frame and assumes that the displacement of the IMU sensor is only along the x-axis. The velocity of the inertial sensor is:
-```
-			where,
-v = V + ω × r		ω is the is the z-axis angular velocity from the gyroscope
-			r = (x c , 0, 0)
-			V is actual linear velocity
-			v stands for measured linear velocity
-```
-And its corresponding acceleration is:
-```
-ẍ = v̇ + ω × v = Ẍ + ω̇ × r + ω × Ẋ + ω × (ω × r)
-```
-Then the range of possible x_c values were found using the equation:
-```
-x_c = (V − v)/ω
-```
-Using the above equation we come to know that x_c and ω are inversely proportional, which means, If we take small values of ω it will give large value of x_c and vice versa.
-This method may isolate the radius of rotation of the car making the turn. And, when the car was driving in a straight line at a constant speed V was set as the minimum velocity, which would return a range of more reasonable estimates.
-<img src="analysis/Graphs/UTM.png" width=1500px>
+## 4.1 Obtain Velocity by Integrating Acceleration
 
+The acceleration as sensed in the vehicle frame is given by:
 
+$$
+\ddot{x}_{\text{obs}} = \ddot{X} - \omega \dot{Y} - \omega^2 x_c,
+$$
 
+which, under certain assumptions, can simplify to:
 
+$$
+\ddot{x}_{\text{obs}} = \ddot{X}.
+$$
 
+Similarly, for the Y direction:
 
+$$
+\ddot{y}_{\text{obs}} = \ddot{Y} + \omega \dot{X} + \dot{\omega} \, x_c.
+$$
 
+Here:
+- \(\ddot{X}\) and \(\ddot{Y}\) are the accelerations in the vehicle's X and Y directions,
+- \(\omega\) is the angular velocity (around the Z-axis),
+- \(x_c\) is the sensor’s displacement from the vehicle’s center of mass.
 
+<img src="analysis/Graphs/YobsvswX.png" width="1500px" alt="Observed vs. Actual X Acceleration">
 
+## 4.2 Estimation of \( x_c \)
 
+The inertial sensor is displaced from the center of mass (CM) by a vector \( r = (x_c, 0, 0) \). The velocity \( v \) measured by the sensor is related to the actual linear velocity \( V \) by:
 
+$$
+v = V + \omega \times r,
+$$
 
+and its acceleration by:
 
+$$
+\ddot{x} = \dot{v} + \omega \times v = \ddot{X} + \dot{\omega} \times r + \omega \times \dot{X} + \omega \times (\omega \times r).
+$$
+
+An estimate for \( x_c \) can be derived from:
+
+$$
+x_c = \frac{V - v}{\omega}.
+$$
+
+This relationship implies that \( x_c \) and \(\omega\) are inversely proportional; small \(\omega\) results in larger \( x_c \) and vice versa. When the car travels in a straight line at constant speed (with \( V \) minimal), this equation yields a more reasonable estimate.
+
+<img src="analysis/Graphs/UTM.png" width="1500px" alt="UTM and \( x_c \) Estimation">
+
+---
 
 # Navigation_Stack_using-IMU-And-GPS
+
+This repository covers the calibration of a magnetometer (compensating for hard and soft iron distortions), estimation of yaw angles, computation of forward velocity, and dead reckoning using an IMU for navigation purposes.
