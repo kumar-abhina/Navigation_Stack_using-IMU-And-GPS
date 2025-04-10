@@ -56,27 +56,13 @@ Subtracting these offsets from the raw magnetometer data essentially eliminates 
 
 After the hard-iron calibration, the ellipse’s center is at \( (0,0) \), but it may be rotated by an angle \(\theta\) relative to the X-axis. The soft-iron calibration involves:
 
-1. **Compute the magnitude of the calibrated data:**
+r = sqrt( X1^2 + Y1^2 )
+θ = arcsin( Y1 / r )
+R = [ cosθ   sinθ ;
+     -sinθ   cosθ ]
+v1 = R * v
+σ = q / r
 
-   <img src="https://latex.codecogs.com/svg.latex?r%20=%20\sqrt{X_1^2%20+%20Y_1^2}" alt="r = sqrt{X_1^2 + Y_1^2}" />
-
-2. **Determine the rotation angle** <em>&theta;</em>:
-
-   <img src="https://latex.codecogs.com/svg.latex?\theta%20=%20\arcsin\left(\frac{Y_1}{r}\right)" alt="\theta = arcsin(Y_1/r)" />
-
-3. **Construct the rotation matrix** <em>R</em>:
-
-   <img src="https://latex.codecogs.com/svg.latex?R%20=%20\begin{bmatrix}\cos\theta%20&%20\sin\theta\\- \sin\theta%20&%20\cos\theta\end{bmatrix}" alt="R = [cosθ sinθ; -sinθ cosθ]" />
-
-4. **Rotate the magnetometer vector:**
-
-   <img src="https://latex.codecogs.com/svg.latex?v_1%20=%20R%20v" alt="v_1 = R v" />
-
-5. **Determine the scale factor** <em>&sigma;</em>:
-
-   <img src="https://latex.codecogs.com/svg.latex?\sigma%20=%20\frac{q}{r}" alt="\sigma = q/r" />
-
-   where <em>q</em> corresponds to the length of the minor axis of the ellipse.
 
 After the rotation, each magnetometer X value is divided by \(\sigma\) to convert the ellipse into an approximate circle.
 
