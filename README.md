@@ -41,12 +41,11 @@ $$
 $$
 
 where:
-$$
+
 - \(X_{\text{max}}\) is the maximum X value,  
 - \(X_{\text{min}}\) is the minimum X value,  
 - \(Y_{\text{max}}\) is the maximum Y value, and  
 - \(Y_{\text{min}}\) is the minimum Y value.
-$$
 Subtracting these offsets from the raw magnetometer data largely eliminates the hard-iron distortion.
 
 <img src="analysis/Graphs/HIC.png" width="1500px" alt="Hard Iron Calibration">
